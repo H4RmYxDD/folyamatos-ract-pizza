@@ -1,13 +1,10 @@
-import { useEffect, useState } from "react";
-import { Table } from "react-bootstrap";
-import type { Pizza } from "../types/Pizza";
-import apiClient from "../api/apiClient";
+import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import apiClient from "../api/apiClient";
+import type { Pizza } from "../types/Pizza";
+import { Table } from "react-bootstrap";
 
-const CartPage = () => {
-  const [kosar, setKosar] = useState<Array<number>>(
-    JSON.parse(localStorage.getItem("kosar") ?? "[]")
-  );
+const Cart = () => {
   const [pizzak, setPizzak] = useState<Array<Pizza>>([]);
   useEffect(() => {
     apiClient
@@ -15,11 +12,14 @@ const CartPage = () => {
       .then((response) => setPizzak(response.data))
       .catch(() => toast.error("A pizzák betöltése sikertelen volt"));
   }, []);
-  const [fizetendo, setFizetendo] = useState<number>(0);
+
+  const [kosar, setKosar] = useState<Array<number>>(
+    JSON.parse(localStorage.getItem("kosar") ?? "[]")
+  );
 
   return (
     <>
-      <h1>Kosar tartalma</h1>
+      <h1>Kosár tartalma</h1>
       <Table striped bordered hover>
         <thead>
           <th>Név</th>
@@ -27,24 +27,30 @@ const CartPage = () => {
         </thead>
         <tbody>
           {kosar.map((id) => {
-            const pizza = pizzak.find((p) => (p.id = id));
-            if (pizza?.ar)
-            setFizetendo(fizetendo + pizza?.ar);
+            const pizza = pizzak.find((p) => p.id == id);
+
             return (
               <tr>
                 <td>{pizza?.nev}</td>
-                <td>{pizza?.ar}</td>
+                <td>{pizza?.ar} Ft</td>
               </tr>
             );
           })}
         </tbody>
         <tfoot>
-          <td></td>
-          <td>{fizetendo} Ft</td>
+          <tr>
+            <td>Összesen:</td>
+            <td>
+              {kosar
+                .map((id) => pizzak.find((p) => p.id == id)?.ar)
+                .reduce((a, b) => Number(a) + Number(b))}
+              Ft
+            </td>
+          </tr>
         </tfoot>
       </Table>
     </>
   );
 };
 
-export default CartPage;
+export default Cart;
